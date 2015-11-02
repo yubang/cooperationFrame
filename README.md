@@ -23,6 +23,10 @@
             });
         </script>
         
+        <body>
+            <a href="/demo/1.json" data-attr="route" data-title="是不是改变标题">测试</a>
+        </body>
+        
 cooperationFrameInit函数的参数是一个js对象，用于配置
 
 配置对象key定义
@@ -36,6 +40,7 @@ cooperationFrameInit函数的参数是一个js对象，用于配置
     templateId: 放置模板代码的标签id
     templateSuffix: 模板路径后缀
     headers: {}//ajax请求数据的时候的自定义headers
+    debug: 是否开启调试（如果为true则不缓存模板文件）
     }
 
 配置对默认值
@@ -49,7 +54,8 @@ cooperationFrameInit函数的参数是一个js对象，用于配置
         'templateId': 'templateId',
         'templateSuffix': '.html',
         'headers': {'ajax-from-frame': 'cooperationFrame'}
-
+        'debug': true
+        
     }
 
 run方法是初始化方法，只需要运行一次
