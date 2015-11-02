@@ -17,6 +17,7 @@
  * @return 框架核心对象
  */
  function cooperationFrameInit(configs){
+    
     //默认配置
     var baseConfig = {
         'urlError': function(t1, t2, t3){alert('get error!');},
@@ -26,15 +27,30 @@
         'templateId': 'templateId',
         'templateSuffix': '.html',
         'headers': {'ajax-from-frame': 'cooperationFrame'},
-        'debug': true
+        'debug': true,
+        'spa': false
     };
     
-    //替换默认参数
-    for(var k in configs){
-        baseConfig[k] = configs[k];
+    //内部初始化函数
+    function cooperationFrameRun(){
+        //替换默认参数
+        for(var k in configs){
+            baseConfig[k] = configs[k];
+        }
+        
+        //处理后退事件
+        if(!baseConfig['spa']){
+            window.addEventListener('popstate', function(e) {     
+　　　　    	this.gotoUrl(location.pathname);
+ 　　    });
+        }
+        
+        //记录标题（sessionLocation）
+        cooperationFrameCacheSet("cooperationFrameTitleCache_"+location.pathname, document.title);
+        
     }
-    //清除缓存
-    cooperationFrameCacheClear();
+    
+    
     
     /**
      * 拦截页面的所有带有data-attr属性的a标签跳转事件
@@ -46,8 +62,18 @@
             cooperationFrameCacheClear();
         }
         $("a[data-attr='route']").on('click', handleAHref);
-        
     } 
+    
+    
+    /**
+     * 模拟触发框架执行的跳转
+     * @param targetUrl 要跳转的目标url
+     */
+    this.gotoUrl = function(targetUrl){
+        $("body").html("<a cooperation-frame-a='temp' href='"+targetUrl+"' data-attr='route' data-title='"+cooperationFrameCacheGet("cooperationFrameTitleCache_"+targetUrl)+"'></a>");
+        this.run();
+        $("a[cooperation-frame-a='temp']").trigger("click");
+    }
     
     /**
      * a标签跳转拦截处理函数
@@ -79,6 +105,20 @@
      * @param data cooperationFrameGETResponse对象
      */
     function getTemplateFromUrl(data){
+    
+        //处理特殊情况（例如后台的情况）
+        if(typeof data['html'] != 'object'){
+            var tempObj = document.createElement("html");
+            tempObj.innerHTML = data['html'];
+            $("body").html($(tempObj).find("body").html());
+            //修改标题
+            var title = data['data']['aObj'].attr('data-title') == undefined ? '' : data['data']['aObj'].attr('data-title');
+            document.title = title;
+            //添加拦截
+            this.run();
+            return;
+        }
+    
         var callbackObj = {};
         callbackObj['jsonData'] = data['html'];
         callbackObj['baseUrl'] = data['data']['baseUrl'];
@@ -97,9 +137,17 @@
         //修改浏览器标题
         var title = data['data']['aObj'].attr('data-title') == undefined ? '' : data['data']['aObj'].attr('data-title');
         document.title = title;
+        //记录标题（sessionLocation）
+        cooperationFrameCacheSet("cooperationFrameTitleCache_"+data['data']['baseUrl'], title);
+        //是否需要修改浏览器url
+        if(!baseConfig['spa']){
+            window.history.pushState(null, title, data['data']['baseUrl']);
+        }
+        
         //调用run方法
         this.run();
     }
+    
     
     /**
      * 封装get请求
@@ -151,26 +199,27 @@
     
     //获取缓存
     function cooperationFrameCacheGet(cacheKey){
-        if(window.localStorage){
-            return window.localStorage.getItem(cacheKey);
+        if(window.sessionStorage){
+            return window.sessionStorage.getItem(cacheKey);
         }
         return null;
     }
     
     //保存缓存
     function cooperationFrameCacheSet(cacheKey, cacheValue){
-        if(window.localStorage){
-            window.localStorage.setItem(cacheKey, cacheValue);
+        if(window.sessionStorage){
+            window.sessionStorage.setItem(cacheKey, cacheValue);
         }
     }
     
     //清空缓存
     function cooperationFrameCacheClear(){
-        if(window.localStorage){
-            window.localStorage.clear();
+        if(window.sessionStorage){
+            //window.sessionStorage.clear();
         }
     }
     
+    cooperationFrameRun();
     return this;
  
  }
