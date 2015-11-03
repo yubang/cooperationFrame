@@ -32,7 +32,8 @@
         'templateSuffix': '.html',
         'headers': {'ajax-from-frame': 'cooperationFrame'},
         'debug': true,
-        'spa': false
+        'spa': false,
+        'loadingFunc': function(){},
     };
     
     //内部初始化函数
@@ -83,7 +84,7 @@
         var clearCacheSign = arguments[0] ? arguments[0] : false;
         if(clearCacheSign){
             //清空缓存的刷新
-            
+            cooperationFrameCacheClear();
         }
         gotoUrl(location.pathname);
     }
@@ -92,6 +93,10 @@
      * a标签跳转拦截处理函数
      */
     function handleAHref(){
+    
+        //初始化动画
+        baseConfig['loadingFunc']();
+        
         //拉取模板文件和json数据
         var url = $(this).attr('href');
         getJsonFromUrl(url, getTemplateFromUrl, $(this));

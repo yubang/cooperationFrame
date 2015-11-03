@@ -6,13 +6,14 @@
         <!--引入jq和模板引擎-->
         <script src="http://apps.bdimg.com/libs/jquery/1.9.1/jquery.min.js"></script>
         <script src="http://cdn.staticfile.org/artTemplate.js/3.0/template.js"></script>
+        <script src="/plug/loading.js"></script>
         <!--引入小框架-->
         <script src="/cooperationFrame.js"></script>
         <script id="templateId" type="text/html"></script>
         <script>
             var coreObj = null;
             $(document).ready(function(){
-                coreObj = cooperationFrameInit({'templateRoot': '/demo/template/'});
+                coreObj = cooperationFrameInit({'templateRoot': '/demo/template/', 'loadingFunc': showLoaind});
                 coreObj.run();
             });
         </script>
