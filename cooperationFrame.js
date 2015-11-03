@@ -7,7 +7,11 @@
 
 /**
  * 使用文档：详细请参考 https://github.com/yubang/cooperationFrame
- *
+ * 依赖jquery
+ * 对外提供函数
+ * run()
+ * gotoUrl(模拟跳转到的页面url)
+ * reload([是否清空缓存，默认为false])
  */
  
  
@@ -57,10 +61,6 @@
      *
      */
     this.run = function(){
-        if(baseConfig['debug']){
-            //清除缓存
-            cooperationFrameCacheClear();
-        }
         $("a[data-attr='route']").on('click', handleAHref);
     } 
     
@@ -70,9 +70,22 @@
      * @param targetUrl 要跳转的目标url
      */
     this.gotoUrl = function(targetUrl){
-        $("body").html("<a cooperation-frame-a='temp' href='"+targetUrl+"' data-attr='route' data-title='"+cooperationFrameCacheGet("cooperationFrameTitleCache_"+targetUrl)+"'></a>");
+        $("body").html("<a cooperation-frame-a='temp' data-cooperationFrame-label='true' href='"+targetUrl+"' data-attr='route' data-title='"+cooperationFrameCacheGet("cooperationFrameTitleCache_"+targetUrl)+"'></a>");
         this.run();
         $("a[cooperation-frame-a='temp']").trigger("click");
+    }
+    
+    /**
+     * 重新加载本页面
+     * @param 第一个参数默认值为false（是否清空缓存）
+     */
+    this.reload = function(){
+        var clearCacheSign = arguments[0] ? arguments[0] : false;
+        if(clearCacheSign){
+            //清空缓存的刷新
+            
+        }
+        gotoUrl(location.pathname);
     }
     
     /**
@@ -140,7 +153,7 @@
         //记录标题（sessionLocation）
         cooperationFrameCacheSet("cooperationFrameTitleCache_"+data['data']['baseUrl'], title);
         //是否需要修改浏览器url
-        if(!baseConfig['spa']){
+        if(!baseConfig['spa'] && !data['data']['aObj'].attr("data-cooperationFrame-label")){
             window.history.pushState(null, title, data['data']['baseUrl']);
         }
         
@@ -156,7 +169,7 @@
     function cooperationFrameGET(url, dataObj, callbackFunc, callbackData){
         
         var cacheKey = "cooperationFrameCache_" + url;
-        if(dataObj['isTemplate']){
+        if(dataObj['isTemplate'] && !baseConfig['debug']){
             //获取缓存
             var cacheData = cooperationFrameCacheGet(cacheKey);
             if(cacheData){
@@ -170,6 +183,7 @@
             'method': "get",
             'url': url,
             'data': {},
+            'cache': !baseConfig['debug'],
             'headers': baseConfig['headers'],
             success: function(data){
                 if(dataObj['isTemplate']){
@@ -215,7 +229,7 @@
     //清空缓存
     function cooperationFrameCacheClear(){
         if(window.sessionStorage){
-            //window.sessionStorage.clear();
+            window.sessionStorage.clear();
         }
     }
     
